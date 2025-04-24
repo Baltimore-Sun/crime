@@ -22,7 +22,6 @@ crime_file <- "https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/service
 histdupes <- historicalcrime[historicalcrime$crime_date %in% historicalcrime$crime_date[duplicated(historicalcrime$crime_date)],] %>% arrange(desc(crime_date))
 lastrechist <- max(histdupes$crime_date)
 
-
 #json query for the seven days after last record
 oneweekfstart <- lastrechist + days(1)
 oneweekfend <- lastrechist + days(7)
@@ -51,8 +50,22 @@ twoweekb <- paste("https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/ser
 twoweekb <- fromJSON(twoweekb, flatten = TRUE)
 twoweekb <- twoweekb$features
 
+#json query for the seven days before that (20 days before last record through 14 days before last record)
+threeweekbstart <- lastrechist - days(20)
+threeweekbend <- lastrechist - days(14)
+threeweekb <- paste("https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services/NIBRS_GroupA_Crime_Data/FeatureServer/0/query?where=%20(CrimeDateTime%20%3E%3D%20%27", threeweekbstart, "%27%20AND%20CrimeDateTime%20%20%3C%3D%20%27", threeweekbend, "%27)%20&outFields=*&returnGeometry=false&outSR=4326&f=json", sep="")
+threeweekb <- fromJSON(threeweekb, flatten = TRUE)
+threeweekb <- threeweekb$features
+
+#json query for the seven days before that (27 days before last record through 21 days before last record)
+fourweekbstart <- lastrechist - days(27)
+fourweekbend <- lastrechist - days(21)
+fourweekb <- paste("https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services/NIBRS_GroupA_Crime_Data/FeatureServer/0/query?where=%20(CrimeDateTime%20%3E%3D%20%27", fourweekbstart, "%27%20AND%20CrimeDateTime%20%20%3C%3D%20%27", fourweekbend, "%27)%20&outFields=*&returnGeometry=false&outSR=4326&f=json", sep="")
+fourweekb <- fromJSON(fourweekb, flatten = TRUE)
+fourweekb <- fourweekb$features
+
 #Combine the data
-crime_data <-  bind_rows(oneweekb, oneweekf, twoweekb, twoweekf) %>% clean_names()
+crime_data <-  bind_rows(oneweekb, oneweekf, twoweekb, twoweekf, threeweekb, fourweekb) %>% clean_names()
 colnames(crime_data)<-gsub("attributes_","",colnames(crime_data))
 
 #MAKE DATES USEABLE
@@ -84,8 +97,8 @@ crime_data$latitude <- as.numeric(crime_data$latitude)
 crime_data$longitude <- as.numeric(crime_data$longitude)
 crime_data$total_incidents <- as.numeric(crime_data$total_incidents)
 
-#MAKE FILTERED VIEW OF HISTORICAL TO REMOVE LAST TWO WEEKS
-histfilter <- historicalcrime$crime_date < twoweekbstart 
+#MAKE FILTERED VIEW OF HISTORICAL TO REMOVE LAST FOUR WEEKS
+histfilter <- historicalcrime$crime_date < fourweekbstart 
 hist_filtered <- historicalcrime %>% filter(histfilter)
 
 #MATCH HIST_FILTERED COLUMN TYPES TO CRIME_DATA COLUMN TYPES
@@ -130,6 +143,7 @@ ytdnow <- merged_data %>% filter(YearToDate)
 
 #THIS IS DF FOR PRIOR YEAR TO THE SAME POINT
 ytdlast <- merged_data %>% filter(PriorYearToDate)
+
 
 #PIVOTING
 
@@ -535,7 +549,7 @@ mergednoy[,6] <- ifelse(mergednoy[,6] > 0, paste0("+", mergednoy[,6]), mergednoy
 mergednoy[,7] <- ifelse(mergednoy[,7] > 0, paste0("+", mergednoy[,7]), mergednoy[,7])
 
 #replace NaN and Inf values
-tempfiltr <- paste("0 in ", format(as.Date(lastrec - years(1), '%Y-%m-%d'), "%Y")," thru ",str_remove(format(as.Date(lastrec, '%Y-%m-%d'), "%m/%d"), "^0+"), sep="")
+tempfiltr <- paste("0 in ", format(as.Date(lastrec - years(1) - days(7), '%Y-%m-%d'), "%Y")," thru ",str_remove(format(as.Date(lastrec - days(7), '%Y-%m-%d'), "%m/%d"), "^0+"), sep="")
 mergednoy[,6] <- str_replace(mergednoy[,6], ".Inf.", tempfiltr)
 mergednoy[,6] <- str_replace(mergednoy[,6], ".NaN.", tempfiltr)
 mergednoy[,7] <- str_replace(mergednoy[,7], ".Inf.", tempfiltr)
