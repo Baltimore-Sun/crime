@@ -12,7 +12,10 @@ library(jsonlite)
 #First need to load historical dataset locally or from Github
 
 #Routinely will load from historicalcrime.csv that was exported during previous run of the script
-historicalcrime <- read_csv("historicalcrime.csv") 
+historicalcrime <- read_csv("historicalcrime.csv",
+                              col_types = cols(
+                                display_time = col_character()
+                              ))
 
 #Next need to update the historical data
   
