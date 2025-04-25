@@ -13,16 +13,19 @@ library(jsonlite)
 
 #Routinely will load from historicalcrime.csv that was exported during previous run of the script
 historicalcrime <- read_csv("historicalcrime.csv",
-                              col_types = cols(
-                                display_time = col_character()
-                              ))
+                            col_types = cols(
+                              display_time = col_character()
+                            ))
 
 #Next need to update the historical data
-  
+
 crime_file <- "https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services/NIBRS_GroupA_Crime_Data/FeatureServer/0/query?where=%20(CrimeDateTime%20%3E%3D%20%272025-01-19%27%20AND%20CrimeDateTime%20%20%3C%3D%20%272025-01-26%27)%20&outFields=*&returnGeometry=false&outSR=4326&f=json"
 
-#Get date of last record in historical data that occurs at least twice
-histdupes <- historicalcrime[historicalcrime$crime_date %in% historicalcrime$crime_date[duplicated(historicalcrime$crime_date)],] %>% arrange(desc(crime_date))
+#Get date of last record in historical data that occurs at least 30 times
+crime_counts <- historicalcrime %>% count(crime_date, name = "n")
+frequent_crime_dates <- crime_counts %>% filter(n >= 30) %>% pull(crime_date)
+histdupes <- historicalcrime %>% filter(crime_date %in% frequent_crime_dates)
+
 lastrechist <- max(histdupes$crime_date)
 
 #json query for the seven days after last record
@@ -124,8 +127,11 @@ merged_data$violent <- ifelse(merged_data$description == "HOMICIDE" | merged_dat
 merged_data$property <- ifelse(merged_data$description == "BURGLARY" | merged_data$description == "ARSON" | merged_data$description == "LARCENY FROM AUTO" | merged_data$description == "LARCENY" | merged_data$description == "LARCENY OF MOTOR VEHICLE PARTS OR ACCESSORIES" | merged_data$description == "SHOPLIFTING" | merged_data$description == "AUTO THEFT", "Y", "N")
 
 
-#GET DATE OF MOST RECENT DATA TO BASE FILTERS ON (latest date that occurs at least twice)
-nowdupes <- merged_data[merged_data$crime_date %in% merged_data$crime_date[duplicated(merged_data$crime_date)],] %>% arrange(desc(crime_date))
+#GET DATE OF MOST RECENT DATA TO BASE FILTERS ON (latest date that occurs at least 30 times)
+crime_counts <- merged_data %>% count(crime_date, name = "n")
+frequent_crime_dates <- crime_counts %>% filter(n >= 30) %>% pull(crime_date)
+nowdupes <- merged_data %>% filter(crime_date %in% frequent_crime_dates)
+
 lastrec <- max(nowdupes$crime_date)
 
 #CREATE DATAFRAMES OF MOST RECENT TWO WEEKS AND TWO WEEKS PRECEDING THAT (after 7-day lag)
