@@ -1,4 +1,5 @@
 "","crime_date","description","inside_outside","weapon","gender","age","race","ethnicity","location","new_district","neighborhood","latitude","longitude","premise_type","zt","zap"
-"1","3/22/2025","Homicide","Outside","Firearm","Male","42","None reported","Unknown","3200 PULASKI HWY","Southeast","Ellwood Park/Monument",39.295665,-76.572798,"Street","8:40","p.m."
+"1","4/19/2025","Homicide","Inside","Firearm","Male","18","Black or African American","Not Hispanic or Latino","600 ALLENDALE ST","Southwest","Edgewood",39.294532,-76.678493,"Other/residential","3:00","a.m."
 "2","4/3/2025","Homicide","Outside","Handgun","Male","22","Black or African American","Unknown","4100 PATTERSON AVE","Northwest","Glen",39.355957,-76.702863,"Street","12:43","p.m."
 "3","4/5/2025","Homicide","Outside","Personal weapons","Male","30","Black or African American","Not Hispanic or Latino","1500 N PAYSON ST","Western","Easterwood",39.305215,-76.649697,"Street","9:33","p.m."
+"4","4/6/2025","Homicide","Outside","Handgun","Male","35","None reported","Unknown","1600 CLIFTVIEW AVE","Eastern","Darley Park",39.315298,-76.595738,"Street","2:51","p.m."
