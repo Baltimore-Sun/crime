@@ -115,6 +115,18 @@ hist_filtered$display_time<-as.character(hist_filtered$display_time)
 #NEXT, MERGE FILTERED HISTORICAL AND WORKING DATAFRAMES
 merged_data <-  bind_rows(hist_filtered, crime_data)
 
+#ACCOUNT FOR NEIGHBORHOOD NAMES THAT CHANGED AROUND OCT. 2024
+merged_data <- merged_data %>%
+  mutate(
+    neighborhood = case_when(
+      neighborhood == "PARKVIEW/WOODBROOK" ~ "AUCHENTOROLY-PARKWOOD",
+      neighborhood == "NEW SOUTHWEST/MOUNT CLARE" ~ "MOUNT CLARE",
+      neighborhood == "GLENHAM-BELHAR" ~ "HAMILTON",
+      neighborhood == "BUTCHER'S HILL" ~ "BUTCHERS HILL",
+      TRUE ~ neighborhood  # keep all other values unchanged
+    )
+  )
+
 #STOP TO EXPORT MERGED DATA AS A CSV TO BE THE HISTORICAL DATA THE NEXT TIME THE SCRIPT RUNS
 write.csv(merged_data, "historicalcrime.csv",  row.names=FALSE)
 
@@ -451,6 +463,7 @@ write.csv(mergedtblrct, "crime_table_rct.csv")
 #last 2 weeks (recentnow)
 nhoodsrnow <- recentnow %>% filter(description == "HOMICIDE" | description == "AGG. ASSAULT" | description == "ROBBERY" | description == "RAPE" | description == "BURGLARY" | description == "AUTO THEFT" | description == "LARCENY" | description == "ARSON" | description == "ROBBERY - CARJACKING" | description == "ROBBERY - COMMERCIAL" | description == "LARCENY FROM AUTO" | description == "LARCENY OF MOTOR VEHICLE PARTS OR ACCESSORIES" | description == "SHOPLIFTING") %>% tabyl(neighborhood, description) %>% clean_names()
 
+
 #Add any missing columns (arson, homicide, rape) and enter 0 for every neighborhood
 if (!("arson" %in% colnames(nhoodsrnow))) {
   nhoodsrnow$arson <- 0
@@ -565,6 +578,9 @@ mergednoy[,7] <- str_replace(mergednoy[,7], ".Inf.", tempfiltr)
 mergednoy[,7] <- str_replace(mergednoy[,7], ".NaN.", tempfiltr)
 
 mergednoy <- mergednoy[, c(1, 2, 6, 4, 7)]
+
+#GET RID OF HARBOR EAST SINCE IT WAS ADDED FALL 2024
+mergednoy <- mergednoy %>% filter(neighborhood != "HARBOR EAST")
 
 #EXPORT CSV FOR N/HOODS YEAR TO DATE
 write.csv(mergednoy, "mergednoy.csv")
