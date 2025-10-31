@@ -579,12 +579,12 @@ mergednoy[,7] <- str_replace(mergednoy[,7], ".NaN.", tempfiltr)
 
 mergednoy <- mergednoy[, c(1, 2, 6, 4, 7)]
 
-#DON'T SHOW HARBOR EAST, INNER HARBOR CHANGE %s B/C OF BOUNDARY CHANGES
+#DON'T SHOW HARBOR EAST, INNER HARBOR, BUTCHERS HILL CHANGE %s B/C OF BOUNDARY CHANGES
 mergednoy <- mergednoy %>%
   mutate(
     across(
       c(3, 5),  # columns 3 and 5
-      ~ ifelse(neighborhood %in% c("HARBOR EAST", "INNER HARBOR"), "-", .)
+      ~ ifelse(neighborhood %in% c("HARBOR EAST", "INNER HARBOR", "BUTCHERS HILL"), "-", .)
     )
   )
 
