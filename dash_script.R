@@ -123,6 +123,7 @@ merged_data <- merged_data %>%
       neighborhood == "NEW SOUTHWEST/MOUNT CLARE" ~ "MOUNT CLARE",
       neighborhood == "GLENHAM-BELHAR" ~ "HAMILTON",
       neighborhood == "BUTCHER'S HILL" ~ "BUTCHERS HILL",
+      neighborhood == "PORT COVINGTON" ~ "BALTIMORE PENINSULA",
       TRUE ~ neighborhood  # keep all other values unchanged
     )
   )
