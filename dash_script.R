@@ -584,7 +584,7 @@ mergednoy <- mergednoy %>%
   mutate(
     across(
       c(3, 5),  # columns 3 and 5
-      ~ ifelse(neighborhood %in% c("HARBOR EAST", "INNER HARBOR", "BREWERS HILL", "CANTON INDUSTRIAL AREA), "-", .)
+      ~ ifelse(neighborhood %in% c("HARBOR EAST", "INNER HARBOR", "BREWERS HILL", "CANTON INDUSTRIAL AREA"), "-", .)
     )
   )
 
