@@ -1,3 +1,4 @@
 "","crime_date","description","inside_outside","weapon","gender","age","race","ethnicity","location","new_district","neighborhood","latitude","longitude","premise_type","zt","zap"
-"1","10/25/2025","Arson","Inside",NA,NA,"None reported","None reported",NA,"3500 E NORTHERN PKWY","Northeast","Rosemont East",39.35825,-76.540792,"Other/residential","12:01","a.m."
-"2","10/23/2025","Arson","Outside",NA,"Male","35","White","Hispanic or Latino","1300 W HAMBURG ST","Southern","Carroll - Camden Industrial Area",39.278445,-76.632494,"Street","4:02","a.m."
+"1","11/28/2025","Arson","Inside","None reported","None reported","None reported","None reported","None Reported","1500 PRESSER CT","Western","Sandtown-Winchester",39.305703,-76.643482,"Other/residential","2:24","a.m."
+"2","11/19/2025","Arson","Inside","None reported","Female","57","None reported","Unknown","3300 DULANY ST","Southwest","Saint Agnes",39.274856,-76.674065,"Other/residential","9:00","a.m."
+"3","11/23/2025","Arson","Inside","None reported","Male","42","Black or African American","Unknown","900 MONTPELIER ST","Northern","Better Waverly",39.324612,-76.603334,"Other/residential","6:10","p.m."
