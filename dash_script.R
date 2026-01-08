@@ -147,6 +147,9 @@ nowdupes <- merged_data %>% filter(crime_date %in% frequent_crime_dates)
 
 lastrec <- max(nowdupes$crime_date)
 
+#manually changing last rec to NYE for Jan. 1-Dec. 31 view
+lastrec <- "2025-12-31"
+
 #CREATE DATAFRAMES OF MOST RECENT TWO WEEKS AND TWO WEEKS PRECEDING THAT (after 7-day lag)
 LastTwoWeeks = merged_data$crime_date >= lastrec - days(20) & merged_data$crime_date <= lastrec - days(7)
 TwoWeeksPrior = merged_data$crime_date >= lastrec - days(34) & merged_data$crime_date <= lastrec - days(21)
