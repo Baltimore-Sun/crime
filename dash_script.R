@@ -1,3 +1,10 @@
+---
+title: "jan2026 crime troubleshooting"
+output: html_notebook
+---
+
+
+```{r}
 ###LOAD LIBRARIES
 
 library(tidyverse)
@@ -17,103 +24,15 @@ historicalcrime <- read_csv("historicalcrime.csv",
                               display_time = col_character()
                             ))
 
-#Next need to update the historical data
 
-crime_file <- "https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services/NIBRS_GroupA_Crime_Data/FeatureServer/0/query?where=%20(CrimeDateTime%20%3E%3D%20%272025-01-19%27%20AND%20CrimeDateTime%20%20%3C%3D%20%272025-01-26%27)%20&outFields=*&returnGeometry=false&outSR=4326&f=json"
-
-#Get date of last record in historical data that occurs at least 30 times
-crime_counts <- historicalcrime %>% count(crime_date, name = "n")
-frequent_crime_dates <- crime_counts %>% filter(n >= 30) %>% pull(crime_date)
-histdupes <- historicalcrime %>% filter(crime_date %in% frequent_crime_dates)
-
-lastrechist <- max(histdupes$crime_date)
-
-#json query for the seven days after last record
-oneweekfstart <- lastrechist + days(1)
-oneweekfend <- lastrechist + days(7)
-oneweekf <- paste("https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services/NIBRS_GroupA_Crime_Data/FeatureServer/0/query?where=%20(CrimeDateTime%20%3E%3D%20%27", oneweekfstart, "%27%20AND%20CrimeDateTime%20%20%3C%3D%20%27", oneweekfend, "%27)%20&outFields=*&returnGeometry=false&outSR=4326&f=json", sep="")
-oneweekf <- fromJSON(oneweekf, flatten = TRUE)
-oneweekf <- oneweekf$features 
-
-# json query for the seven days after that (eight day after last record 14th day after last record)
-twoweekfstart <- lastrechist + days(8)
-twoweekfend <- lastrechist + days(14)
-twoweekf <- paste("https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services/NIBRS_GroupA_Crime_Data/FeatureServer/0/query?where=%20(CrimeDateTime%20%3E%3D%20%27", twoweekfstart, "%27%20AND%20CrimeDateTime%20%20%3C%3D%20%27", twoweekfend, "%27)%20&outFields=*&returnGeometry=false&outSR=4326&f=json", sep="")
-twoweekf <- fromJSON(twoweekf, flatten = TRUE)
-twoweekf <- twoweekf$features 
-
-# json query for the day of the last record plus the previous six
-oneweekbstart <- lastrechist - days(6)
-oneweekbend <- lastrechist
-oneweekb <- paste("https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services/NIBRS_GroupA_Crime_Data/FeatureServer/0/query?where=%20(CrimeDateTime%20%3E%3D%20%27", oneweekbstart, "%27%20AND%20CrimeDateTime%20%20%3C%3D%20%27", oneweekbend, "%27)%20&outFields=*&returnGeometry=false&outSR=4326&f=json", sep="")
-oneweekb <- fromJSON(oneweekb, flatten = TRUE)
-oneweekb <- oneweekb$features 
-
-#json query for the seven days before that (13 days before last record through seven days before last record)
-twoweekbstart <- lastrechist - days(13)
-twoweekbend <- lastrechist - days(7)
-twoweekb <- paste("https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services/NIBRS_GroupA_Crime_Data/FeatureServer/0/query?where=%20(CrimeDateTime%20%3E%3D%20%27", twoweekbstart, "%27%20AND%20CrimeDateTime%20%20%3C%3D%20%27", twoweekbend, "%27)%20&outFields=*&returnGeometry=false&outSR=4326&f=json", sep="")
-twoweekb <- fromJSON(twoweekb, flatten = TRUE)
-twoweekb <- twoweekb$features
-
-#json query for the seven days before that (20 days before last record through 14 days before last record)
-threeweekbstart <- lastrechist - days(20)
-threeweekbend <- lastrechist - days(14)
-threeweekb <- paste("https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services/NIBRS_GroupA_Crime_Data/FeatureServer/0/query?where=%20(CrimeDateTime%20%3E%3D%20%27", threeweekbstart, "%27%20AND%20CrimeDateTime%20%20%3C%3D%20%27", threeweekbend, "%27)%20&outFields=*&returnGeometry=false&outSR=4326&f=json", sep="")
-threeweekb <- fromJSON(threeweekb, flatten = TRUE)
-threeweekb <- threeweekb$features
-
-#json query for the seven days before that (27 days before last record through 21 days before last record)
-fourweekbstart <- lastrechist - days(27)
-fourweekbend <- lastrechist - days(21)
-fourweekb <- paste("https://services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services/NIBRS_GroupA_Crime_Data/FeatureServer/0/query?where=%20(CrimeDateTime%20%3E%3D%20%27", fourweekbstart, "%27%20AND%20CrimeDateTime%20%20%3C%3D%20%27", fourweekbend, "%27)%20&outFields=*&returnGeometry=false&outSR=4326&f=json", sep="")
-fourweekb <- fromJSON(fourweekb, flatten = TRUE)
-fourweekb <- fourweekb$features
-
-#Combine the data
-crime_data <-  bind_rows(oneweekb, oneweekf, twoweekb, twoweekf, threeweekb, fourweekb) %>% clean_names()
-colnames(crime_data)<-gsub("attributes_","",colnames(crime_data))
-
-#MAKE DATES USEABLE
-#DISABLE SCIENTIFIC NOTATION
-options(scipen = 999)
-#DIVIDE DATES BY 1000 TO CONVERT TO UNIX TIMESTAMP
-######ERROR BELOW OBJECT crime_date_time not found
-crime_data <- crime_data %>% mutate(crime_date_time = crime_date_time / 1000)
-#FORMAT DATES INTO READABLE FORMAT
-crime_data$crime_date_time <- format(as_datetime(crime_data$crime_date_time), "%y-%m-%d %H:%M")
-#CREATE SEPARATE DATE AND TIME COLUMNS
-crime_data <- crime_data %>% separate(crime_date_time, c("crime_date", "crime_time"), " ")
-#CONVERT DATE COLUMN TO DATE CLASS
-crime_data$crime_date <- ymd(crime_data$crime_date)
-#MAKE NEW DISPLAY TIME COLUMN IN 12-HOUR TIME
-crime_data$crime_time <- strptime(crime_data$crime_time, format = "%H:%M")
-crime_data$crime_time <- strftime(crime_data$crime_time, "%I:%M %p")
-colnames(crime_data)[4] <- "display_time"
-crime_data <- crime_data %>% relocate(display_time, .after=total_incidents)
-
-#TAKE COLUMNS WE NEED
-crime_data = select(crime_data, row_id,cc_number,crime_date,description,inside_outside,weapon,shooting,post,gender,age,race,ethnicity,location,old_district,new_district,neighborhood,latitude,longitude,premise_type,total_incidents,display_time)
-#CONVERT WORKING DATA TIBBLE TO DATAFRAME
-crime_data <- as.data.frame(crime_data)
-#CHANGE COLUMN TYPES TO MATCH HISTORICAL DATA
-crime_data$row_id <- as.numeric(crime_data$row_id)
-crime_data$age <- as.numeric(crime_data$age)
-crime_data$latitude <- as.numeric(crime_data$latitude)
-crime_data$longitude <- as.numeric(crime_data$longitude)
-crime_data$total_incidents <- as.numeric(crime_data$total_incidents)
-
-#MAKE FILTERED VIEW OF HISTORICAL TO REMOVE LAST FOUR WEEKS
-histfilter <- historicalcrime$crime_date < fourweekbstart 
-hist_filtered <- historicalcrime %>% filter(histfilter)
 
 #MATCH HIST_FILTERED COLUMN TYPES TO CRIME_DATA COLUMN TYPES
-hist_filtered$cc_number<-as.character(hist_filtered$cc_number)
-hist_filtered$post<-as.character(hist_filtered$post)
-hist_filtered$display_time<-as.character(hist_filtered$display_time)
+historicalcrime$cc_number<-as.character(historicalcrime$cc_number)
+historicalcrime$post<-as.character(historicalcrime$post)
+historicalcrime$display_time<-as.character(historicalcrime$display_time)
 
 #NEXT, MERGE FILTERED HISTORICAL AND WORKING DATAFRAMES
-merged_data <-  bind_rows(hist_filtered, crime_data)
+merged_data <-  historicalcrime
 
 #ACCOUNT FOR NEIGHBORHOOD NAMES THAT CHANGED AROUND OCT. 2024
 merged_data <- merged_data %>%
@@ -148,7 +67,7 @@ nowdupes <- merged_data %>% filter(crime_date %in% frequent_crime_dates)
 lastrec <- max(nowdupes$crime_date)
 
 #manually changing last rec to NYE for Jan. 1-Dec. 31 view
-lastrec <- as.Date("2025-12-31")
+lastrec <- as.Date("2026-01-07")
 
 #CREATE DATAFRAMES OF MOST RECENT TWO WEEKS AND TWO WEEKS PRECEDING THAT (after 7-day lag)
 LastTwoWeeks = merged_data$crime_date >= lastrec - days(20) & merged_data$crime_date <= lastrec - days(7)
@@ -479,9 +398,12 @@ if (!("rape" %in% colnames(nhoodsrnow))) {
   nhoodsrnow$rape <- 0
 }
 
+
+
 #sum component violent and property crimes and add new columns at end with totals
 nhoodsrnow <- nhoodsrnow %>% mutate(Violent = rowSums(across(c(agg_assault,homicide,rape,robbery, robbery_carjacking, robbery_commercial))))
 nhoodsrnow <- nhoodsrnow %>% mutate(Property = rowSums(across(c(burglary,auto_theft,larceny,arson, larceny_from_auto, larceny_of_motor_vehicle_parts_or_accessories,shoplifting))))
+
 nhoodsrnow <- nhoodsrnow[, c(1,15, 16)]
 
 #rename coumn with M/D-M/D for last two weeks minus 7 days for reporting lag
@@ -677,3 +599,7 @@ write.csv(ytdmap %>% filter(description == "Burglary"), "Burglary.csv")
 write.csv(ytdmap %>% filter(description == "Auto theft"), "Auto theft.csv")
 write.csv(ytdmap %>% filter(grepl("Larceny", description) | grepl("Shoplifting", description)), "Larceny.csv")
 write.csv(ytdmap %>% filter(description == "Arson"), "Arson.csv")
+
+
+
+
