@@ -1,10 +1,3 @@
----
-title: "jan2026 crime troubleshooting"
-output: html_notebook
----
-
-
-```{r}
 ###LOAD LIBRARIES
 
 library(tidyverse)
