@@ -27,18 +27,7 @@ historicalcrime$display_time<-as.character(historicalcrime$display_time)
 #NEXT, MERGE FILTERED HISTORICAL AND WORKING DATAFRAMES
 merged_data <-  historicalcrime
 
-#ACCOUNT FOR NEIGHBORHOOD NAMES THAT CHANGED AROUND OCT. 2024
-merged_data <- merged_data %>%
-  mutate(
-    neighborhood = case_when(
-      neighborhood == "PARKVIEW/WOODBROOK" ~ "AUCHENTOROLY-PARKWOOD",
-      neighborhood == "NEW SOUTHWEST/MOUNT CLARE" ~ "MOUNT CLARE",
-      neighborhood == "GLENHAM-BELHAR" ~ "HAMILTON",
-      neighborhood == "BUTCHER'S HILL" ~ "BUTCHERS HILL",
-      neighborhood == "PORT COVINGTON" ~ "BALTIMORE PENINSULA",
-      TRUE ~ neighborhood  # keep all other values unchanged
-    )
-  )
+
 
 #STOP TO EXPORT MERGED DATA AS A CSV TO BE THE HISTORICAL DATA THE NEXT TIME THE SCRIPT RUNS
 write.csv(merged_data, "historicalcrime.csv",  row.names=FALSE)
@@ -59,8 +48,6 @@ nowdupes <- merged_data %>% filter(crime_date %in% frequent_crime_dates)
 
 lastrec <- max(nowdupes$crime_date)
 
-#manually changing last rec to NYE for Jan. 1-Dec. 31 view
-lastrec <- as.Date("2026-01-07")
 
 #CREATE DATAFRAMES OF MOST RECENT TWO WEEKS AND TWO WEEKS PRECEDING THAT (after 7-day lag)
 LastTwoWeeks = merged_data$crime_date >= lastrec - days(20) & merged_data$crime_date <= lastrec - days(7)
@@ -392,10 +379,11 @@ if (!("rape" %in% colnames(nhoodsrnow))) {
 }
 
 
-
 #sum component violent and property crimes and add new columns at end with totals
 nhoodsrnow <- nhoodsrnow %>% mutate(Violent = rowSums(across(c(agg_assault,homicide,rape,robbery, robbery_carjacking, robbery_commercial))))
 nhoodsrnow <- nhoodsrnow %>% mutate(Property = rowSums(across(c(burglary,auto_theft,larceny,arson, larceny_from_auto, larceny_of_motor_vehicle_parts_or_accessories,shoplifting))))
+
+
 
 nhoodsrnow <- nhoodsrnow[, c(1,15, 16)]
 
@@ -498,14 +486,7 @@ mergednoy[,7] <- str_replace(mergednoy[,7], ".NaN.", tempfiltr)
 
 mergednoy <- mergednoy[, c(1, 2, 6, 4, 7)]
 
-#DON'T SHOW HARBOR EAST, INNER HARBOR, BREWERS HILL, CANTON INDUSTRIAL AREA CHANGE %s B/C OF BOUNDARY CHANGES
-mergednoy <- mergednoy %>%
-  mutate(
-    across(
-      c(3, 5),  # columns 3 and 5
-      ~ ifelse(neighborhood %in% c("HARBOR EAST", "INNER HARBOR", "BREWERS HILL", "CANTON INDUSTRIAL AREA"), "-", .)
-    )
-  )
+
 
 #EXPORT CSV FOR N/HOODS YEAR TO DATE
 write.csv(mergednoy, "mergednoy.csv")
